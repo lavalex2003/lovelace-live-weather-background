@@ -1,0 +1,38 @@
+<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Weather background preview</title>
+<style>body{margin:0;background:#101722;color:#f3f7ff;font-family:system-ui}hui-view{display:block;min-height:100vh}#result{position:fixed;bottom:16px;left:24px;font-size:12px;color:#c3cfde;z-index:3}</style>
+<main style="background:#080b10"><hui-view></hui-view></main><output id="result"></output>
+<script type="module">
+import "../dist/live-weather-background.js";
+(async () => {
+ const view = document.querySelector('hui-view');
+ const root = view.attachShadow({mode:'open'});
+ root.innerHTML = `<style>.content{position:relative;padding:7vh 6vw;display:grid;grid-template-columns:1fr 1fr;gap:24px}h1{grid-column:1/-1;font-size:44px;font-weight:300;margin-bottom:0}p{grid-column:1/-1;color:#dbe7f0}.card{height:170px;padding:25px;border-radius:24px;background:rgba(22,32,49,.35);border:1px solid #ffffff38;backdrop-filter:blur(12px);box-shadow:0 12px 40px #0002;font-size:24px}.value{display:block;font-size:42px;margin-top:28px}button{color:inherit;text-align:left;cursor:pointer;font:inherit}@media(max-width:600px){.content{grid-template-columns:1fr}h1{font-size:32px}.card{height:100px}.value{font-size:30px;margin-top:12px}}</style><div class="content"><h1>Live Weather Background</h1><p>A living sky for your Home Assistant dashboard</p><button class="card" id="control">Living room<span class="value">23.4°</span></button><div class="card">Lighting<span class="value">On</span></div><div class="card">Humidity<span class="value">42%</span></div><div class="card">Weather<span class="value" id="condition"></span></div></div>`;
+ const card = document.createElement('dashboard-weather-background');
+ card.setConfig({weather_entity:'weather.preview',sun_entity:'sun.preview',brightness:.85,overlay_opacity:.12});
+ const night=location.hash.includes('night'), rainy=location.hash.includes('rain');
+ const now=Date.now();
+ card.hass={states:{'weather.preview':{state:rainy?'rainy':night?'clear-night':'partlycloudy',attributes:{}},'sun.preview':{state:night?'below_horizon':'above_horizon',attributes:{elevation:night?-30:28,next_noon:new Date(now-3600000).toISOString(),next_midnight:new Date(now-3600000).toISOString(),next_setting:new Date(now+14400000).toISOString(),next_rising:new Date(now+14400000).toISOString()}}}};
+ root.append(card);
+ root.querySelector('#condition').textContent=rainy?'Rain':night?'Clear night':'Partly cloudy';
+ await new Promise(r=>setTimeout(r,300));
+ const button=root.querySelector('#control'), rect=button.getBoundingClientRect();
+ const hit=root.elementFromPoint(rect.left+30,rect.top+30);
+ const layer=root.querySelector('[data-dashboard-weather]');
+ if (!layer || !button.contains(hit) || getComputedStyle(layer).pointerEvents!=='none') throw new Error('Layer integration failed');
+ // Bubble-style global backdrop must not cover a popup inside the view.
+ const backdrop=document.createElement('div');
+ backdrop.style.cssText='position:fixed;inset:0;z-index:4;background:#0008';
+ const popup=document.createElement('div');
+ popup.style.cssText='position:fixed;left:20px;top:20px;width:180px;height:100px;z-index:5;background:white';
+ document.body.append(backdrop);root.append(popup);
+ const popupVisible=()=>root.elementFromPoint(40,40)===popup;
+ if(!popupVisible())throw new Error('Popup trapped behind global backdrop');
+ const originalStyle=card._style.textContent;
+ card._style.textContent=originalStyle+':host{isolation:isolate!important}';
+ if(popupVisible())throw new Error('Popup negative control failed');
+ card._style.textContent=originalStyle;
+ if(!popupVisible())throw new Error('Popup stacking did not recover');
+ popup.remove();backdrop.remove();
+ document.querySelector('#result').textContent='PASS: background mounted · controls accessible · scene '+(night?'night':rainy?'rain':'day');
+})();
+</script></html>

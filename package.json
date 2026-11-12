@@ -1,0 +1,15 @@
+{
+  "name": "lovelace-live-weather-background",
+  "version": "2.4.0",
+  "description": "Animated fullscreen weather and daylight background for Home Assistant dashboards",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/verify.cjs && python3 scripts/vendor_origami.py && node scripts/verify-package.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

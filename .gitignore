@@ -1,0 +1,6 @@
+node_modules/
+.unlazy/
+GATES.md
+*.log
+.DS_Store
+__pycache__/

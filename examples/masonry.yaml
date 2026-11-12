@@ -1,0 +1,18 @@
+# A complete example dashboard. Replace weather.home with your weather entity.
+# Пример отдельного дашборда. Замените weather.home на свою сущность погоды.
+title: Live Weather
+views:
+  - title: Home
+    path: home
+    type: masonry
+    cards:
+      - type: custom:dashboard-weather-background
+        weather_entity: weather.home
+        sun_entity: sun.sun
+      - type: weather-forecast
+        entity: weather.home
+        show_forecast: false
+      - type: markdown
+        content: |
+          # A living sky
+          This background belongs to this view.

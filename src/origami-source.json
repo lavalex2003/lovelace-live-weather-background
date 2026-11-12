@@ -1,0 +1,11 @@
+{
+  "source": "www/community/origami_weather/origami-weather.js",
+  "sha256": "f2342d9f7406d01c6a3942fe553424c30d138c09018325f51046f701b0a21f1a",
+  "blocks": {
+    "assets": "60d6b8398a0800ee38145a57ec0453829b5ff8256865b65e8526f4cc5839fe0e",
+    "palettes": "928dec03f523e4326f3b778a1cedff3f92affa0ef01353ec87499992f6b38c2c",
+    "engine": "f44adc939c482bbc7d9b8d0e40e0156c22b1e4c6833d13d555f304bd6cead8b7",
+    "sun_palette": "648009cb50d97fe3668f2d80d8608647c9a52c11d1e814db2b09f98f940af3d9",
+    "moon_geometry": "eb7148c419b203070ba78e0d826f525f4b45164ef1af737884ad566a48d9df71"
+  }
+}
