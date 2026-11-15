@@ -14,6 +14,20 @@
 
 This project uses Origami Weather's rendering engine and graphical resources, with our own fullscreen adapter, daylight/twilight transitions, solar lighting, lunar edge smoothing and storm-cloud enhancements. Full attribution, the exact upstream source and our modifications are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The combined project is open source under **GPL-3.0-only** and available without charge.
 
+## What's new in 2.4.1
+
+- **Visible daytime rain:** luminous drops remain visible against grey clouds even with atmospheric dimming enabled.
+- **A much denser downpour:** around four times as many drops as regular rain at the usual fullscreen size (900 vs 213 in the test fixture).
+- **Tilted lunar illumination:** the lit boundary defaults to **−22°**, while the lunar surface texture keeps its orientation. Adjust it in the helper card:
+
+  ```yaml
+  moon_tilt: -22
+  ```
+
+  Allowed range: **−90° to 90°**. Use `0` for a vertical boundary. This is a configurable artistic tilt, not a physical lunar position-angle calculation.
+
+Update through HACS, then reload the dashboard. Existing configurations automatically get the default tilt.
+
 ## What it does
 
 - A fullscreen, view-scoped background, controlled by your own weather and sun entities.
