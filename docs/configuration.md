@@ -11,6 +11,7 @@ Configure the helper card with YAML. Required entities are read only; the card d
 | `brightness` | `0.72` | `0.1–1.5`; atmospheric brightness, not solar-core brightness |
 | `overlay_opacity` | `0.18` | `0–0.85`; atmospheric dimming |
 | `sun_moon_size` | `100` | `24–250` CSS px; base light-source container; halo/rays extend beyond it |
+| `moon_tilt` | `-22` | `−90–90` degrees; artistic tilt of the lit lunar phase / наклон освещённой части Луны |
 | `fps` | `24` | `1–30`; animation frame cap |
 | `clouds` | `true` | Cloud and fog layers / облака и туман |
 | `stars` | `true` | Stars and meteors when dark / звёзды и метеоры ночью |
@@ -69,3 +70,5 @@ Normal solar/lunar paths are stylized; the Moon's phase is approximate and its p
 - **Resource in YAML:** update its version query when manually upgrading. HACS manages its own cache tag.
 
 Если видите старый вариант, проверьте дубли ресурсов, затем выполните жёсткое обновление страницы. Не перезапускайте HA только ради смены JS-файла.
+
+Daytime rain uses the original luminous streak sprites on an independently lit layer. Heavy rain uses six times the original drop count (up to 1100), ordinary rain 1.8 times and thunderstorms four times. The lunar mask is tilted by `moon_tilt` without rotating the surface texture. This is a stylized viewing angle, not a physical ephemeris.

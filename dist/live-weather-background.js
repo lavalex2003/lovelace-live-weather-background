@@ -1,4 +1,4 @@
-/*! Live Weather Background v2.4.0 | GPL-3.0-only
+/*! Live Weather Background v2.4.1 | GPL-3.0-only
  * Copyright (c) 2026 Live Weather Background contributors.
  * Inspired by and containing the Origami Weather rendering engine and assets
  * by hazymorning: https://github.com/hazymorning/origami_weather
@@ -1551,12 +1551,12 @@ function assetsReady() {
   })));
 }
 
-/** Dashboard Weather Background v2.4.0 — fullscreen adapter for the vendored Origami rendering engine.
+/** Dashboard Weather Background v2.4.1 — fullscreen adapter for the vendored Origami rendering engine.
  * CSS atmosphere + Canvas 2D weather. Settings live on the Lovelace helper card.
  */
 (() => {
   'use strict';
-  const VERSION = '2.4.0';
+  const VERSION = '2.4.1';
   const clamp = (n, a = 0, b = 1) => Math.max(a, Math.min(b, n));
   const smooth = (a, b, value) => { const t = clamp((value-a)/(b-a)); return t*t*(3-2*t); };
   const mix = (a, b, t) => a.map((v,i) => v+(b[i]-v)*t);
@@ -1612,6 +1612,7 @@ function assetsReady() {
       this._demoActors = new WeakSet();
       this._fogFields = new WeakSet();
       this._cloudFields = new WeakMap();
+      this._rainFields = new WeakMap();
       this.attachShadow({mode: 'open'}).innerHTML = '<style>:host{display:none!important}</style>';
       this._visibility = () => this._schedule();
       this._motion = () => { this._draw(performance.now(), 0); this._schedule(); };
@@ -1639,6 +1640,7 @@ function assetsReady() {
         brightness: number('brightness', 0.72, 0.1, 1.5),
         overlay_opacity: number('overlay_opacity', 0.18, 0, 0.85),
         sun_moon_size: number('sun_moon_size', 100, 24, 250),
+        moon_tilt: number('moon_tilt', -22, -90, 90),
         effects: config.effects !== false, stars: config.stars !== false,
         clouds: config.clouds !== false,
         birds: config.birds !== false, balloons: config.balloons !== false, planes: config.planes !== false,
@@ -1674,7 +1676,7 @@ function assetsReady() {
         .sky{z-index:0;overflow:hidden}.sky-base,.horizon-light{position:absolute;inset:0;transition:opacity 8s linear}.sky-base{background:linear-gradient(180deg,var(--dashboard-sky-0) 0%,var(--dashboard-sky-1) 58%,var(--dashboard-sky-2) 100%)}.sky-base.ready{transition:--dashboard-sky-0 60s linear,--dashboard-sky-1 60s linear,--dashboard-sky-2 60s linear}.sky-haze{transition:opacity 8s linear}.orb{transition:opacity 8s linear}.stars{transition:opacity 8s linear}
         .preview .orb{transition:opacity .2s linear,left .15s linear,top .15s linear}
         .preview .stars,.preview .sky-haze{transition:opacity .2s linear}
-        .stars{z-index:1}.clouds{z-index:3}.weather{z-index:4}.shade{z-index:1}.preview-label{z-index:5}
+        .stars{z-index:1}.clouds{z-index:3}.weather,.rain{z-index:4}.shade{z-index:1}.preview-label{z-index:5}
         .orb{position:absolute;z-index:2;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
         /* Optical bloom obscures the daytime rim; unequal rays fade into the sky. */
         .sun .sun-disc{inset:17%;background:radial-gradient(circle,var(--solar-core) 0%,var(--solar-core) 30%,var(--solar-edge) 52%,color-mix(in srgb,var(--solar-edge) 60%,transparent) 63%,transparent 73%);box-shadow:none;transform:scaleY(var(--solar-flatten,1));filter:blur(.6px)}
@@ -1687,7 +1689,7 @@ function assetsReady() {
         .paused *{animation-play-state:paused!important;transition:none!important}
         .preview-label{position:absolute;right:14px;bottom:14px;padding:8px 12px;border-radius:12px;background:rgba(7,16,30,.8);color:#eef5ff;font:13px/1.4 system-ui;pointer-events:none}
         .shade{background:radial-gradient(ellipse at 55% 25%,transparent 20%,rgba(2,8,20,.2) 100%)}
-      </style><div class="sky"><div class="sky-base"></div><div class="horizon-light"></div><div class="sky-haze"><div class="haze-layer h1"></div><div class="haze-layer h2"></div><div class="haze-layer h3"></div></div></div><canvas class="stars"></canvas><div class="orb sun"><div class="sun-glow"></div><svg class="sun-rays" viewBox="-450 -450 900 900" aria-hidden="true"><defs><radialGradient id="dashboard-solar-rays" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="390"><stop offset="0" stop-color="var(--solar-core)" stop-opacity=".75"/><stop offset=".18" stop-color="var(--solar-halo)" stop-opacity=".42"/><stop offset=".45" stop-color="var(--solar-halo)" stop-opacity=".14"/><stop offset=".75" stop-color="var(--solar-halo)" stop-opacity=".035"/><stop offset="1" stop-color="var(--solar-halo)" stop-opacity="0"/></radialGradient></defs>${[[3,370,7],[34,210,12],[68,290,7],[101,180,15],[127,340,6],[157,230,10],[184,310,9],[219,390,6],[250,190,14],[278,280,7],[307,350,8],[337,210,12]].map(([angle,length,width])=>`<ellipse cx="0" cy="${-length/2}" rx="${width*.55}" ry="${length/2}" transform="rotate(${angle})" fill="url(#dashboard-solar-rays)"/>`).join('')}</svg><div class="sun-bloom"></div><div class="sun-disc"></div></div><div class="orb moon"><div class="moon-glow"></div><svg class="moon-disc" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="dashboard-moon-surface" cx="38%" cy="34%" r="78%"><stop offset="0%" stop-color="#eef0f4"/><stop offset="45%" stop-color="#dce0e8"/><stop offset="100%" stop-color="#b8bcc6"/></radialGradient><clipPath id="dashboard-moon-disc"><circle cx="50" cy="50" r="48"/></clipPath><filter id="dashboard-moon-terminator" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0.85"/></filter><mask id="dashboard-moon-lit" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100" style="mask-type:luminance"><path class="moon-lit-path" d="" fill="white" filter="url(#dashboard-moon-terminator)"/></mask></defs><g clip-path="url(#dashboard-moon-disc)"><g mask="url(#dashboard-moon-lit)"><circle class="moon-surface" cx="50" cy="50" r="48" fill="url(#dashboard-moon-surface)"/><image class="moon-image" x="2" y="2" width="96" height="96" preserveAspectRatio="xMidYMid slice"/></g></g></svg></div><canvas class="clouds"></canvas><canvas class="weather"></canvas><div class="shade"></div><div class="preview-label" hidden></div>`;
+      </style><div class="sky"><div class="sky-base"></div><div class="horizon-light"></div><div class="sky-haze"><div class="haze-layer h1"></div><div class="haze-layer h2"></div><div class="haze-layer h3"></div></div></div><canvas class="stars"></canvas><div class="orb sun"><div class="sun-glow"></div><svg class="sun-rays" viewBox="-450 -450 900 900" aria-hidden="true"><defs><radialGradient id="dashboard-solar-rays" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="390"><stop offset="0" stop-color="var(--solar-core)" stop-opacity=".75"/><stop offset=".18" stop-color="var(--solar-halo)" stop-opacity=".42"/><stop offset=".45" stop-color="var(--solar-halo)" stop-opacity=".14"/><stop offset=".75" stop-color="var(--solar-halo)" stop-opacity=".035"/><stop offset="1" stop-color="var(--solar-halo)" stop-opacity="0"/></radialGradient></defs>${[[3,370,7],[34,210,12],[68,290,7],[101,180,15],[127,340,6],[157,230,10],[184,310,9],[219,390,6],[250,190,14],[278,280,7],[307,350,8],[337,210,12]].map(([angle,length,width])=>`<ellipse cx="0" cy="${-length/2}" rx="${width*.55}" ry="${length/2}" transform="rotate(${angle})" fill="url(#dashboard-solar-rays)"/>`).join('')}</svg><div class="sun-bloom"></div><div class="sun-disc"></div></div><div class="orb moon"><div class="moon-glow"></div><svg class="moon-disc" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="dashboard-moon-surface" cx="38%" cy="34%" r="78%"><stop offset="0%" stop-color="#eef0f4"/><stop offset="45%" stop-color="#dce0e8"/><stop offset="100%" stop-color="#b8bcc6"/></radialGradient><clipPath id="dashboard-moon-disc"><circle cx="50" cy="50" r="48"/></clipPath><filter id="dashboard-moon-terminator" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="0.85"/></filter><mask id="dashboard-moon-lit" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100" style="mask-type:luminance"><path class="moon-lit-path" d="" fill="white" filter="url(#dashboard-moon-terminator)"/></mask></defs><g clip-path="url(#dashboard-moon-disc)"><g mask="url(#dashboard-moon-lit)"><circle class="moon-surface" cx="50" cy="50" r="48" fill="url(#dashboard-moon-surface)"/><image class="moon-image" x="2" y="2" width="96" height="96" preserveAspectRatio="xMidYMid slice"/></g></g></svg></div><canvas class="clouds"></canvas><canvas class="weather"></canvas><canvas class="rain"></canvas><div class="shade"></div><div class="preview-label" hidden></div>`;
       root.prepend(this._style, this._layer);
       this._previewLabel = this._layer.querySelector('.preview-label');
       this._sky = this._layer.querySelector('.sky');
@@ -1698,6 +1700,9 @@ function assetsReady() {
       this._stars = this._layer.querySelector('.stars');
       this._cloudCanvas = this._layer.querySelector('.clouds');
       this._cloudCtx = this._cloudCanvas.getContext('2d');
+      this._rainCanvas = this._layer.querySelector('.rain');
+      this._rainCanvas.style.filter='brightness(1.3)';
+      this._rainCtx = this._rainCanvas.getContext('2d');
       this._ctx = this._canvas.getContext('2d');
       this._starCtx = this._stars.getContext('2d');
       this._reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -1723,7 +1728,7 @@ function assetsReady() {
       document.removeEventListener('visibilitychange', this._visibility);
       this._layer?.remove(); this._style?.remove();
       this._layer = null; this._view = null; this._snapshot = null; this._skyReady = false;
-      this._effects = WeatherEffects.create(); this._demoActors = new WeakSet(); this._actorSizes = new WeakMap(); this._fogFields = new WeakSet(); this._cloudFields = new WeakMap();
+      this._effects = WeatherEffects.create(); this._demoActors = new WeakSet(); this._actorSizes = new WeakMap(); this._fogFields = new WeakSet(); this._cloudFields = new WeakMap(); this._rainFields = new WeakMap();
     }
     _active() { return this.isConnected && this._layer && this._visible && !document.hidden && !this._reduced?.matches && this._config?.effects; }
     _schedule() {
@@ -1740,7 +1745,7 @@ function assetsReady() {
       this._snapshot = null;
       const scale = Math.min(window.devicePixelRatio || 1, 1.5, Math.sqrt(1200000 / (width * height)));
       this._renderScale = scale;
-      for (const canvas of [this._canvas, this._stars, this._cloudCanvas]) {
+      for (const canvas of [this._canvas, this._stars, this._cloudCanvas, this._rainCanvas]) {
         canvas.width = Math.round(width * scale); canvas.height = Math.round(height * scale);
         canvas.getContext('2d').setTransform(scale, 0, 0, scale, 0, 0);
       }
@@ -1905,6 +1910,8 @@ function assetsReady() {
     _paintMoon() {
       const phase = Math.round(OriginalAstronomy._moonPhase()*200)/200;
       this._moon.querySelector('.moon-lit-path').setAttribute('d',OriginalAstronomy._moonLitPath(phase)||'');
+      // An artistic viewing tilt; not an astronomical position-angle calculation.
+      this._moon.querySelector('.moon-lit-path').setAttribute('transform',`rotate(${this._config.moon_tilt} 50 50)`);
       this._moon.querySelector('.moon-image').setAttribute('href',MOON_SURFACE);
       this._moon.style.setProperty('--origami-moon-phase-glow',String(Math.round(Math.sin(phase*Math.PI)*100)/100));
     }
@@ -1919,6 +1926,7 @@ function assetsReady() {
       const stars=cfg.stars&&this._starlight>0&&tuning.starCount>0 ? {count:tuning.starCount,opacity:tuning.starOpacity}:null;
       WeatherEffects.set(this._effects,cfg.effects?tuning.precipitation:null,this._w,this._h,
         cfg.clouds&&WeatherEffects.hasClouds(state)?state:null,stars,birds,balloons,planes);
+      this._adaptRain();
       // Fullscreen framing: one original mist band crosses the light source.
       // Texture, alpha, drift speed and all other puffs remain the reference's.
       const field=this._effects.cloud;
@@ -1931,6 +1939,19 @@ function assetsReady() {
       if (cfg.preview) for(const actor of [this._effects.birds,this._effects.balloon,this._effects.planes]) {
         if(actor&&!actor.list.length) actor.next=-1;
       }
+    }
+    _adaptRain() {
+      const drops=this._effects.rain;
+      if(!drops||this._rainFields.has(drops))return;
+      const base=drops.slice(),kind=this._effects.rainKey;
+      const factor=kind==='pour'?6:kind==='storm'?4:1.8;
+      const target=Math.min(1100,Math.ceil(base.length*factor));
+      for(let i=drops.length;i<target;i++){
+        const source=base[i%base.length];
+        drops.push({...source,x:(source.x+i*.61803398875)%1,
+          y:(source.y+i*.38196601125)%1,sd:(source.sd+i*.41421356)%1});
+      }
+      this._rainFields.set(drops,base.length);
     }
     _adaptClouds(field,state) {
       const profile=STORM_CLOUDS[state];
@@ -2002,10 +2023,16 @@ function assetsReady() {
       const peak=flash?.age>=0&&flash.strokes
         ? Math.max(0,...flash.strokes.map(s=>flash.age>=s.start&&flash.age<s.start+s.on?s.peak:0)):0;
       this._paintCloudTone(peak);
+      const rain=this._effects.rain;
       this._effects.cloud=null;
+      this._effects.rain=null;
       try {
         WeatherEffects.frame(this._effects,this._ctx,this._w,this._h,this._renderScale,step,this._sceneTime,env,this._starCtx);
-      } finally {this._effects.cloud=cloud;}
+      } finally {this._effects.cloud=cloud;this._effects.rain=rain;}
+      // The original luminous rain sprites remain visible over dim daytime
+      // clouds. Only this layer bypasses the atmospheric brightness filter.
+      const rainScene={...this._effects,cloud:null,stars:null,birds:null,balloon:null,planes:null,snow:null,hail:null};
+      WeatherEffects.frame(rainScene,this._rainCtx,this._w,this._h,this._renderScale,step,this._sceneTime,{...env,schemeDark:true},null);
       this._adaptActors();
     }
 

@@ -1,18 +1,11 @@
-First public release of **Live Weather Background** — a living sky across an entire Home Assistant dashboard.
+# Live Weather Background 2.4.1
 
-Inspired by [Origami Weather](https://github.com/hazymorning/origami_weather) by **hazymorning**, whose original rendering engine and graphics made this project possible. Upstream source, license and our modifications are preserved and credited in the repository.
+- Rain remains visible during daytime against grey cloud banks. Its lighting is independent of atmospheric dimming.
+- Pouring rain is substantially denser: about four times regular rain at a typical fullscreen size (900 vs 213 drops in the regression fixture).
+- Lunar illumination is tilted by −22° by default. Set `moon_tilt: 0` for a vertical boundary, or choose an angle from −90° to 90°. The lunar surface texture keeps its orientation.
 
-- Continuous daylight, dawn, twilight and night from solar elevation.
-- Bright Sun, broad halo and soft rays that weaken near the horizon and under clouds.
-- Textured Moon, stars, decorative sky actors and original weather effects.
-- Denser grey clouds for rain, sleet, snow, hail and thunderstorms; separate precipitation coloring.
-- A full day per weather condition in preview, 30 seconds by default.
-- One self-contained JS file; no separate Origami Weather installation required.
+Update through HACS and reload the dashboard. The default tilt needs no YAML change. Browser regression checks verify daylight rain contrast against a no-rain control and the actual rotated lunar mask.
 
-**Install manually:** download `live-weather-background.js`, copy it to `/config/www/`, and register `/local/live-weather-background.js?v=2.4.0` as a JavaScript module. Add a `custom:dashboard-weather-background` helper with your `weather_entity` and `sun_entity`.
+Inspired by [Origami Weather](https://github.com/hazymorning/origami_weather) by hazymorning. Its original engine and artwork remain credited, preserved and GPL-3.0 licensed.
 
-**HACS:** this project is prepared as a custom Dashboard repository. It is not yet included in the default Marketplace catalog. See the English/Russian README for details.
-
-The 2.4.0 number continues the version reached during local development. The project is available without charge under **GPL-3.0-only**, without warranty.
-
-Русское описание и примеры установки: [README.ru.md](https://github.com/lavalex2003/lovelace-live-weather-background/blob/main/README.ru.md).
+Русский: дождь теперь виден днём; ливень заметно плотнее; освещённая часть Луны наклонена на 22°. Угол регулируется параметром `moon_tilt`. Обновите карточку в HACS и перезагрузите страницу.

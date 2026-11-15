@@ -24,7 +24,7 @@ const sandbox={HTMLElement:Element,Image:MockImage,document,window:{devicePixelR
 const scope=vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync('src/origami-engine.js','utf8').replace(/export\s*\{[^}]+\};\s*$/,''),scope);
 vm.runInContext(fs.readFileSync('src/dashboard-weather-background.js','utf8').replace(/^import[^\n]+\n/,''),scope);
-assert.equal(Card.version,'2.4.0');assert.equal(Card.getStubConfig({states:{'weather.example':{}}}).weather_entity,'weather.example');const card=new Card(),config={weather_entity:'weather.home',sun_entity:'sun.sun'};
+assert.equal(Card.version,'2.4.1');assert.equal(Card.getStubConfig({states:{'weather.example':{}}}).weather_entity,'weather.example');const card=new Card(),config={weather_entity:'weather.home',sun_entity:'sun.sun'};
 assert.throws(()=>card.setConfig({weather_entity:'sensor.bad',sun_entity:'sun.sun'}));assert.throws(()=>card.setConfig({...config,fps:'bad'}));
 card.setConfig(config);const view=new Element('hui-view');view.attachShadow();card.parentNode=view;card.hass={states:{}};card.connectedCallback();
 assert.equal(view.shadowRoot.children.length,2);assert.equal(timers.size,1);assert(card._canvas.width*card._canvas.height<=1203000);assert.equal(card._sun.style.opacity,0);
@@ -62,8 +62,13 @@ for(const weather of ['rainy','pouring','lightning','lightning-rainy','snowy','s
 state('cloudy');assert.equal(card._effects.cloud.puffs.length,whiteCount);assert(!card._cloudCanvas.style.filter.includes('grayscale'));
 assert(card._cloudCanvas.width*card._cloudCanvas.height<=1203000);
 console.log('Dense grey storm clouds, white fair clouds, independent precipitation color and bounded field verified');
+state('rainy');const beforeDrops=card._rainCtx.counts.drawImage||0;card._draw(1000,.04);assert((card._rainCtx.counts.drawImage||0)>beforeDrops,'Rain layer must actually draw streaks');
+state('rainy');assert.equal(card._moon.querySelector('.moon-lit-path').attributes.transform,'rotate(-22 50 50)');
+card.setConfig({...config,moon_tilt:17});assert.equal(card._moon.querySelector('.moon-lit-path').attributes.transform,'rotate(17 50 50)');card.setConfig(config);
+const drops=card._effects.rain,dropCount=drops.length;for(let i=0;i<10;i++)card._syncEffects();assert.equal(drops.length,dropCount,'Rain enrichment must not accumulate');
+assert.equal(card._rainCanvas.style.filter,'brightness(1.3)');assert(card._rainFields.get(drops)<drops.length);
 state('rainy');assert.equal(card._effects.rainKey,'rain');const rainCount=card._effects.rain.length;assert(card._effects.cloud.puffs.some(p=>p.band<3));
-state('pouring');assert.equal(card._effects.rainKey,'pour');assert(card._effects.rain.length>rainCount);assert(card._effects.cloud.puffs.some(p=>p.band<3));
+state('pouring');assert.equal(card._effects.rainKey,'pour');assert(card._effects.rain.length>=rainCount*4,'Pouring must be substantially denser than regular rain');assert(card._effects.cloud.puffs.some(p=>p.band<3));
 state('fog');assert(card._effects.cloud.puffs.every(p=>p.band===3));assert(card._effects.cloud.puffs.some(p=>p.speed<0)&&card._effects.cloud.puffs.some(p=>p.speed>0));
 state('lightning');for(let i=0;i<130;i++)card._draw(i*50,.05);assert(card._effects.flash.strokes.length>=2,'Reference storm flashes illuminate cloud clusters');
 const darkFilter=card._cloudCanvas.style.filter;

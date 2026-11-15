@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><style>body{margin:0}hui-view{display:block;height:100vh}</style><hui-view></hui-view><script type="module">
+import '../dist/live-weather-background.js';
+const view=document.querySelector('hui-view'),root=view.attachShadow({mode:'open'});
+const card=document.createElement('dashboard-weather-background');
+card.setConfig({weather_entity:'weather.test',sun_entity:'sun.test',brightness:.72,overlay_opacity:.18,birds:false,balloons:false,planes:false});
+window.scene=(weather,elevation)=>{card.hass={states:{'weather.test':{state:weather,attributes:{}},'sun.test':{state:elevation>0?'above_horizon':'below_horizon',attributes:{elevation}}}};};
+scene('sunny',35);root.append(card);await card._assetsReady;
+card._active=()=>false;cancelAnimationFrame(card._raf);card._visible=false;card._layer.classList.toggle('paused',true);window.card=card;window.ready=true;
+</script>

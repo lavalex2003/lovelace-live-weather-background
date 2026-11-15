@@ -4,3 +4,4 @@ GATES.md
 *.log
 .DS_Store
 __pycache__/
+test-artifacts/

@@ -64,14 +64,14 @@ HACS normally registers the resource automatically. If your resources are manage
 
 1. Download `live-weather-background.js` from the release assets, or from [`dist/`](dist/live-weather-background.js).
 2. Copy it to `/config/www/live-weather-background.js`.
-3. Add `/local/live-weather-background.js?v=2.4.0` as a **JavaScript module** in dashboard Resources.
+3. Add `/local/live-weather-background.js?v=2.4.1` as a **JavaScript module** in dashboard Resources.
 4. Reload the browser. This one file includes the engine and image assets.
 
 For YAML-managed resources:
 
 ```yaml
 resources:
-  - url: /local/live-weather-background.js?v=2.4.0
+  - url: /local/live-weather-background.js?v=2.4.1
     type: module
 ```
 
@@ -111,7 +111,7 @@ Preview values stay inside the renderer: it does not alter HA entities, call ser
 
 All options and limits are listed in [docs/configuration.md](docs/configuration.md). The defaults use 24 fps and a 100 px light-source container. Cloud tinting is separate from precipitation so snowflakes keep their color.
 
-Animation pauses when the view/tab is hidden or the system requests reduced motion. Each of three canvas layers is capped at approximately 1.2 million pixels. On slower tablets, try `fps: 15` and disable decorative actors. A detailed real-time preview still updates its simulated clock; turn preview off for normal use.
+Animation pauses when the view/tab is hidden or the system requests reduced motion. Each of four canvas layers is capped at approximately 1.2 million pixels. On slower tablets, try `fps: 15` and disable decorative actors. A detailed real-time preview still updates its simulated clock; turn preview off for normal use.
 
 The lunar phase is approximate, and the Moon follows a stylized night arc, **not a lunar ephemeris**. This is a decorative background rather than an astronomical instrument.
 
